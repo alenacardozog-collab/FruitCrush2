@@ -1,0 +1,584 @@
+/* ===================================================
+   FRUTA ATTACK: MAIN CSS - ESTÉTICA ART ATTACK & CRAFT
+   =================================================== */
+
+:root {
+  /* Paleta Art Attack / Taller Creativo */
+  --bg-desk: #2b1f1d;
+  --cardboard-base: #d4a373;
+  --cardboard-dark: #bc8a5f;
+  --cardboard-edge: #8b5e34;
+  --paper-cream: #fefae0;
+  --paper-white: #fffdf7;
+  --paper-shadow: rgba(43, 31, 29, 0.25);
+  --paper-torn: #e9d8a6;
+  
+  /* Colores de témperas y crayones vibrantes */
+  --crayon-red: #e63946;
+  --crayon-orange: #f77f00;
+  --crayon-yellow: #fcbf49;
+  --crayon-green: #2a9d8f;
+  --crayon-blue: #0077b6;
+  --crayon-purple: #7209b7;
+  --crayon-pink: #ff4d6d;
+  --pencil-lead: #2b2d42;
+  
+  /* Cinta adhesiva y texturas */
+  --tape-color: rgba(254, 250, 224, 0.65);
+  --tape-shadow: rgba(0, 0, 0, 0.12);
+  
+  /* Fuentes */
+  --font-display: 'Patrick Hand', 'Comic Neue', cursive, sans-serif;
+  --font-bold: 'Fredoka', 'Patrick Hand', sans-serif;
+  --font-sketch: 'Gaegu', 'Patrick Hand', cursive, sans-serif;
+}
+
+/* Reset y caja base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-desk);
+  background-image: 
+    radial-gradient(circle at 50% 30%, #3e2e2b 0%, #201716 100%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px);
+  font-family: var(--font-display);
+  color: var(--pencil-lead);
+}
+
+/* Contenedor del escritorio artesanal */
+#craft-desk {
+  width: 100%;
+  height: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
+  background-color: var(--cardboard-base);
+  /* Textura de cartón corrugado realista en puro CSS */
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.04) 0px,
+      rgba(0, 0, 0, 0.04) 3px,
+      rgba(255, 255, 255, 0.05) 3px,
+      rgba(255, 255, 255, 0.05) 6px
+    ),
+    radial-gradient(circle at 20% 40%, rgba(255,255,255,0.06) 0%, transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(0,0,0,0.08) 0%, transparent 60%);
+  border-left: 6px dashed rgba(139, 94, 52, 0.4);
+  border-right: 6px dashed rgba(139, 94, 52, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Gestor de pantallas */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.96);
+  transition: opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 10;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1);
+  z-index: 20;
+}
+
+/* ===================================================
+   CINTA ADHESIVA (MASKING TAPE) Y BORDES RUSTICOS
+   =================================================== */
+.tape-strip {
+  position: absolute;
+  background-color: var(--tape-color);
+  box-shadow: 1px 2px 5px var(--tape-shadow);
+  border-left: 2px dashed rgba(255, 255, 255, 0.5);
+  border-right: 2px dashed rgba(255, 255, 255, 0.5);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.tape-top-left {
+  width: 70px;
+  height: 22px;
+  top: 15px;
+  left: -15px;
+  transform: rotate(-35deg);
+}
+
+.tape-top-right {
+  width: 70px;
+  height: 22px;
+  top: 15px;
+  right: -15px;
+  transform: rotate(35deg);
+}
+
+.tape-top-center {
+  width: 90px;
+  height: 24px;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+}
+
+.tape-corner-1 {
+  width: 60px;
+  height: 20px;
+  top: -10px;
+  left: -10px;
+  transform: rotate(-40deg);
+}
+
+.tape-corner-2 {
+  width: 60px;
+  height: 20px;
+  bottom: -10px;
+  right: -10px;
+  transform: rotate(-30deg);
+}
+
+/* ===================================================
+   PANTALLA DE MENÚ PRINCIPAL
+   =================================================== */
+#screen-menu {
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.cardboard-canvas {
+  width: 100%;
+  max-width: 440px;
+  background: var(--paper-cream);
+  border-radius: 20px;
+  border: 4px solid var(--pencil-lead);
+  box-shadow: 
+    0 12px 25px rgba(0, 0, 0, 0.35),
+    inset 0 0 30px rgba(212, 163, 115, 0.25);
+  padding: 30px 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transform: rotate(-1deg);
+}
+
+.badge-tag {
+  display: inline-block;
+  background: var(--crayon-yellow);
+  color: var(--pencil-lead);
+  font-family: var(--font-bold);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 16px;
+  border-radius: 30px;
+  border: 2px dashed var(--pencil-lead);
+  transform: rotate(-3deg);
+  margin-bottom: 12px;
+}
+
+.logo-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.88;
+  margin-bottom: 8px;
+}
+
+.word-fruta {
+  font-family: var(--font-bold);
+  font-size: 3.4rem;
+  color: var(--crayon-red);
+  text-shadow: 
+    3px 3px 0 var(--pencil-lead),
+    -1px -1px 0 #fff;
+  letter-spacing: 2px;
+  transform: rotate(-3deg);
+}
+
+.word-attack {
+  font-family: var(--font-bold);
+  font-size: 3.8rem;
+  color: var(--crayon-blue);
+  text-shadow: 
+    3px 3px 0 var(--pencil-lead),
+    -1px -1px 0 #fff;
+  letter-spacing: 3px;
+  transform: rotate(2deg);
+}
+
+.logo-subtitle {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+/* Escaparate de Frutas Animadas en el Menú */
+.hero-fruit-showcase {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 15px 0 25px;
+  height: 90px;
+  align-items: center;
+}
+
+.hero-fruit {
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(2px 6px 6px rgba(0, 0, 0, 0.25));
+  transition: transform 0.2s ease;
+}
+
+.hero-fruit:hover {
+  transform: scale(1.15) rotate(8deg);
+}
+
+.bobbing-1 {
+  animation: fruitBob 2.2s infinite ease-in-out;
+}
+
+.bobbing-2 {
+  animation: fruitBob 2.4s infinite ease-in-out 0.4s;
+}
+
+.bobbing-3 {
+  animation: fruitBob 2s infinite ease-in-out 0.8s;
+}
+
+@keyframes fruitBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(4deg); }
+}
+
+/* Botones con estilo artesanal */
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 280px;
+  align-items: center;
+}
+
+.art-btn {
+  font-family: var(--font-bold);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  border: 3px solid var(--pencil-lead);
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--pencil-lead);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.15s ease;
+  position: relative;
+  outline: none;
+}
+
+.art-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--pencil-lead);
+}
+
+.primary-btn {
+  background: var(--crayon-yellow);
+  color: var(--pencil-lead);
+  width: 100%;
+}
+
+.primary-btn:hover {
+  background: #ffd166;
+}
+
+.secondary-btn {
+  background: var(--paper-white);
+  color: var(--pencil-lead);
+  width: 100%;
+}
+
+.secondary-btn:hover {
+  background: #fff;
+}
+
+.mini-btn {
+  font-size: 1rem;
+  padding: 6px 14px;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--pencil-lead);
+  background: var(--paper-white);
+}
+
+.mini-btn.icon-only {
+  padding: 6px 10px;
+}
+
+.icon-only-btn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--paper-cream);
+  font-size: 1.4rem;
+}
+
+.pulse-glow {
+  animation: pulseGlow 1.8s infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(252, 191, 73, 0.4)); }
+  100% { transform: scale(1.03); filter: drop-shadow(0 0 10px rgba(252, 191, 73, 0.8)); }
+}
+
+.craft-footer-note {
+  margin-top: 22px;
+  font-family: var(--font-sketch);
+  font-size: 1.15rem;
+  color: #777;
+}
+
+/* ===================================================
+   MODALES (CÓMO JUGAR, VICTORIA, DERROTA)
+   =================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(20, 14, 13, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 16px;
+  opacity: 1;
+  transition: opacity 0.25s ease;
+}
+
+.modal-backdrop.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.modal-cardboard {
+  background: var(--paper-cream);
+  border: 4px solid var(--pencil-lead);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 440px;
+  padding: 28px 24px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  transform: rotate(0.5deg) scale(1);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-backdrop.hidden .modal-cardboard {
+  transform: scale(0.85);
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: var(--crayon-red);
+  color: white;
+  border: 2px solid var(--pencil-lead);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--pencil-lead);
+}
+
+.modal-title {
+  font-family: var(--font-bold);
+  font-size: 1.9rem;
+  color: var(--pencil-lead);
+  margin-bottom: 8px;
+}
+
+.modal-subtitle {
+  font-size: 1.15rem;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.modal-scroll-content {
+  max-height: 52vh;
+  overflow-y: auto;
+  text-align: left;
+  padding-right: 6px;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-scroll-content::-webkit-scrollbar-thumb {
+  background: var(--cardboard-dark);
+  border-radius: 4px;
+}
+
+.howto-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--paper-white);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 2px dashed #d5bdaf;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.howto-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.modal-action-btn {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Temas del Modal */
+.modal-confetti-badge {
+  display: inline-block;
+  background: var(--crayon-green);
+  color: white;
+  font-family: var(--font-bold);
+  font-size: 1rem;
+  padding: 4px 18px;
+  border-radius: 30px;
+  border: 2px solid var(--pencil-lead);
+  box-shadow: 0 3px 0 var(--pencil-lead);
+  margin-bottom: 12px;
+}
+
+.modal-confetti-badge.defeat-tag {
+  background: var(--crayon-red);
+}
+
+.stars-awarded-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.star-pod {
+  font-size: 3.2rem;
+  filter: grayscale(1) opacity(0.3);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.star-pod.earned {
+  filter: grayscale(0) opacity(1) drop-shadow(0 4px 8px rgba(247, 127, 0, 0.5));
+  transform: scale(1.15) rotate(5deg);
+  animation: starBounce 0.5s ease;
+}
+
+@keyframes starBounce {
+  0% { transform: scale(0.2) rotate(-40deg); }
+  70% { transform: scale(1.3) rotate(10deg); }
+  100% { transform: scale(1.15) rotate(5deg); }
+}
+
+.victory-stats {
+  background: var(--paper-white);
+  border: 2px solid var(--pencil-lead);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 14px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.v-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.15rem;
+  color: #444;
+}
+
+.v-stat-row strong {
+  color: var(--pencil-lead);
+  font-family: var(--font-bold);
+  font-size: 1.25rem;
+}
+
+.modal-actions-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.modal-actions-row .art-btn {
+  flex: 1;
+}
+
+/* ===================================================
+   BANNER FLOTANTE (TOAST DE COMBOS Y LOGROS)
+   =================================================== */
+.toast-banner {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg) scale(1);
+  background: var(--crayon-yellow);
+  color: var(--pencil-lead);
+  font-family: var(--font-bold);
+  font-size: 1.8rem;
+  padding: 8px 24px;
+  border-radius: 16px;
+  border: 3px solid var(--pencil-lead);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-banner.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px) scale(0.6);
+}

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Fruta Attack - ¡El Taller Mágico de Frutas!</title>
+  <meta name="description" content="Juego Match-3 estilo Candy Crush con frutas dibujadas a mano y estética Art Attack. 4 mundos, 20 niveles y potenciadores artesanales.">
+  
+  <!-- Google Fonts: Patrick Hand, Gaegu, Fredoka -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Gaegu:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+  
+  <!-- Hojas de estilo -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <!-- Contenedor general estilo mesa de trabajo Art Attack -->
+  <div id="craft-desk">
+    
+    <!-- PANTALLA 1: MENÚ PRINCIPAL -->
+    <section id="screen-menu" class="screen active">
+      <div class="cardboard-canvas">
+        <div class="tape-strip tape-top-left"></div>
+        <div class="tape-strip tape-top-right"></div>
+        
+        <div class="title-container">
+          <div class="badge-tag">¡MANOS A LA OBRA!</div>
+          <h1 class="logo-title">
+            <span class="word-fruta">FRUTA</span>
+            <span class="word-attack">ATTACK</span>
+          </h1>
+          <p class="logo-subtitle">✂️ El Taller Mágico de Frutas y Recortes 🎨</p>
+        </div>
+
+        <div class="hero-fruit-showcase">
+          <div class="hero-fruit bobbing-1" id="hero-strawberry"></div>
+          <div class="hero-fruit bobbing-2" id="hero-banana"></div>
+          <div class="hero-fruit bobbing-3" id="hero-watermelon"></div>
+        </div>
+
+        <div class="menu-actions">
+          <button id="btn-play" class="art-btn primary-btn pulse-glow">
+            <span class="btn-icon">🚀</span>
+            <span class="btn-text">¡A JUGAR!</span>
+          </button>
+          
+          <button id="btn-how-to" class="art-btn secondary-btn">
+            <span class="btn-icon">📖</span>
+            <span class="btn-text">CÓMO JUGAR</span>
+          </button>
+
+          <button id="btn-toggle-sound" class="art-btn icon-only-btn" title="Activar/Silenciar Sonido">
+            <span id="sound-icon">🔊</span>
+          </button>
+        </div>
+
+        <div class="craft-footer-note">
+          <span>Hecho con tijeras, témpera, papel y mucha imaginación ✨</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 2: MAPA DE MUNDOS Y NIVELES (PLATAFORMAS) -->
+    <section id="screen-map" class="screen">
+      <header class="map-header">
+        <button id="btn-map-back" class="art-btn mini-btn">
+          <span>⬅ Inicio</span>
+        </button>
+        <div class="map-title-tag">
+          <h2>MAPA DEL TALLER</h2>
+        </div>
+        <div class="total-stars-pill">
+          <span class="star-icon">⭐</span>
+          <span id="header-total-stars">0 / 60</span>
+        </div>
+      </header>
+
+      <!-- Selector de mundos / plataformas -->
+      <nav class="world-tabs-nav">
+        <button class="world-tab-btn active" data-world="1">
+          <span class="world-tab-icon">📦</span>
+          <span class="world-tab-name">1. Taller de Cartón</span>
+        </button>
+        <button class="world-tab-btn" data-world="2">
+          <span class="world-tab-icon">🏝️</span>
+          <span class="world-tab-name">2. Isla Papel Maché</span>
+        </button>
+        <button class="world-tab-btn" data-world="3">
+          <span class="world-tab-icon">🏔️</span>
+          <span class="world-tab-name">3. Torre Plastilina</span>
+        </button>
+        <button class="world-tab-btn" data-world="4">
+          <span class="world-tab-icon">🏰</span>
+          <span class="world-tab-name">4. Gran Castillo</span>
+        </button>
+      </nav>
+
+      <div class="map-viewport">
+        <div id="world-container" class="world-canvas">
+          <!-- Renderizado dinámico de la plataforma y sus 5 niveles -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 3: TABLERO DE JUEGO (MATCH-3) -->
+    <section id="screen-game" class="screen">
+      <!-- HUD Superior -->
+      <header class="game-hud">
+        <button id="btn-game-map" class="art-btn mini-btn" title="Volver al mapa">
+          <span>🗺️ Mapa</span>
+        </button>
+
+        <div class="hud-center-panels">
+          <div class="hud-paper-badge level-badge">
+            <span class="hud-label">NIVEL</span>
+            <span id="hud-level-num" class="hud-value">1</span>
+          </div>
+
+          <div class="hud-paper-badge moves-badge">
+            <span class="hud-label">MOVIMIENTOS</span>
+            <span id="hud-moves-left" class="hud-value bold-num">25</span>
+          </div>
+
+          <div class="hud-paper-badge score-badge">
+            <span class="hud-label">PUNTOS</span>
+            <span id="hud-score" class="hud-value">0</span>
+          </div>
+        </div>
+
+        <button id="btn-game-sound" class="art-btn mini-btn icon-only" title="Sonido">
+          <span id="game-sound-icon">🔊</span>
+        </button>
+      </header>
+
+      <!-- Barra de Metas / Objetivos -->
+      <div class="objective-ribbon">
+        <div class="objective-header">
+          <span class="ribbon-pin">📌</span>
+          <span class="objective-title">Misión:</span>
+          <span id="objective-desc" class="objective-text">Alcanza 1500 puntos</span>
+        </div>
+        <div id="objective-targets" class="targets-container">
+          <!-- Items de objetivos (frutas a recolectar o pegamento a limpiar) -->
+        </div>
+        <div class="star-meter-wrap">
+          <div class="star-meter-bg">
+            <div id="star-meter-fill" class="star-meter-fill"></div>
+            <div class="star-milestone star-1" data-star="1">⭐</div>
+            <div class="star-milestone star-2" data-star="2">⭐</div>
+            <div class="star-milestone star-3" data-star="3">⭐</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tablero Central -->
+      <main class="game-board-area">
+        <div id="board-frame" class="board-frame">
+          <div class="tape-strip tape-corner-1"></div>
+          <div class="tape-strip tape-corner-2"></div>
+          <div id="board-grid" class="board-grid">
+            <!-- Celdas y frutas inyectadas dinámicamente -->
+          </div>
+          <!-- Canvas de partículas y efectos de dibujo encima del tablero -->
+          <canvas id="fx-canvas" class="fx-canvas"></canvas>
+        </div>
+      </main>
+
+      <!-- Barra Inferior de Herramientas / Potenciadores Art Attack -->
+      <footer class="game-tools-bar">
+        <div class="tools-label">✂️ HERRAMIENTAS:</div>
+        
+        <button id="tool-scissors" class="tool-btn" title="Tijeras: Corta una fruta del tablero">
+          <span class="tool-icon">✂️</span>
+          <span class="tool-name">Tijera</span>
+          <span class="tool-count" id="count-scissors">3</span>
+        </button>
+
+        <button id="tool-glue" class="tool-btn" title="Pincel Pegamento: Intercambia dos frutas cualesquiera">
+          <span class="tool-icon">🖌️</span>
+          <span class="tool-name">Pincel</span>
+          <span class="tool-count" id="count-glue">2</span>
+        </button>
+
+        <button id="tool-shuffle" class="tool-btn" title="Mezcla de Témperas: Reordena todo el tablero">
+          <span class="tool-icon">🎨</span>
+          <span class="tool-name">Mezcla</span>
+          <span class="tool-count" id="count-shuffle">2</span>
+        </button>
+      </footer>
+    </section>
+
+    <!-- MODAL 1: CÓMO JUGAR -->
+    <div id="modal-how-to" class="modal-backdrop hidden">
+      <div class="modal-cardboard">
+        <button class="modal-close-btn" id="btn-close-howto">✖</button>
+        <div class="tape-strip tape-top-center"></div>
+        <h2 class="modal-title">🎨 Manual del Artista de Frutas</h2>
+        <div class="modal-scroll-content">
+          <div class="howto-item">
+            <span class="howto-icon">🔄</span>
+            <div>
+              <strong>Empareja 3 Frutas:</strong> Desliza o toca dos frutas adyacentes para hacer una línea horizontal o vertical de 3 frutas iguales y ganar puntos.
+            </div>
+          </div>
+          <div class="howto-item">
+            <span class="howto-icon">🖌️</span>
+            <div>
+              <strong>4 en Línea = Fruta Pincelada:</strong> Crea una fruta rayada mágica. ¡Al activarla, un trazo de témpera borra toda su fila o columna!
+            </div>
+          </div>
+          <div class="howto-item">
+            <span class="howto-icon">💣</span>
+            <div>
+              <strong>Forma en T o L = Bomba de Pintura:</strong> Explota en un área de 3x3 salpicando colores y limpiando el cartón.
+            </div>
+          </div>
+          <div class="howto-item">
+            <span class="howto-icon">🌈</span>
+            <div>
+              <strong>5 en Línea = Paleta Arcoíris:</strong> ¡La máxima creación! Intercámbiala con cualquier fruta para pintar y eliminar todas las frutas de ese tipo del tablero.
+            </div>
+          </div>
+          <div class="howto-item">
+            <span class="howto-icon">✂️</span>
+            <div>
+              <strong>Caja de Herramientas:</strong> Usa las tijeras para cortar frutas molestas, el pincel para intercambios libres y la paleta para remezclar el tablero.
+            </div>
+          </div>
+          <div class="howto-item">
+            <span class="howto-icon">📦</span>
+            <div>
+              <strong>4 Mundos / Plataformas:</strong> Avanza por el Taller de Cartón, la Isla de Papel Maché, la Torre de Plastilina y el Gran Castillo con desafíos únicos.
+            </div>
+          </div>
+        </div>
+        <button class="art-btn primary-btn modal-action-btn" id="btn-howto-gotit">¡ENTENDIDO, ARTISTA!</button>
+      </div>
+    </div>
+
+    <!-- MODAL 2: NIVEL COMPLETADO (VICTORIA) -->
+    <div id="modal-victory" class="modal-backdrop hidden">
+      <div class="modal-cardboard victory-theme">
+        <div class="tape-strip tape-top-center"></div>
+        <div class="modal-confetti-badge">🎉 ¡OBRA MAESTRA! 🎉</div>
+        <h2 class="modal-title victory-text">¡NIVEL COMPLETADO!</h2>
+        
+        <div class="stars-awarded-wrap">
+          <div class="star-pod" id="v-star-1">⭐</div>
+          <div class="star-pod" id="v-star-2">⭐</div>
+          <div class="star-pod" id="v-star-3">⭐</div>
+        </div>
+
+        <div class="victory-stats">
+          <div class="v-stat-row">
+            <span>Puntuación:</span>
+            <strong id="victory-score">0</strong>
+          </div>
+          <div class="v-stat-row">
+            <span>Movimientos sobrantes:</span>
+            <strong id="victory-bonus-moves">0 (+bonus)</strong>
+          </div>
+          <div class="v-stat-row">
+            <span>Mejor récord:</span>
+            <strong id="victory-highscore">0</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions-row">
+          <button id="btn-victory-map" class="art-btn secondary-btn">
+            <span>🗺️ Mapa</span>
+          </button>
+          <button id="btn-victory-replay" class="art-btn secondary-btn">
+            <span>🔄 Reintentar</span>
+          </button>
+          <button id="btn-victory-next" class="art-btn primary-btn pulse-glow">
+            <span>Siguiente ➡</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: DERROTA / SIN MOVIMIENTOS -->
+    <div id="modal-game-over" class="modal-backdrop hidden">
+      <div class="modal-cardboard gameover-theme">
+        <div class="tape-strip tape-top-center"></div>
+        <div class="modal-confetti-badge defeat-tag">✂️ ¡SE ACABÓ EL PAPEL! ✂️</div>
+        <h2 class="modal-title">¡Sin movimientos!</h2>
+        <p class="modal-subtitle">No te preocupes, ¡un verdadero artista de Art Attack siempre vuelve a intentarlo con más creatividad!</p>
+
+        <div class="victory-stats">
+          <div class="v-stat-row">
+            <span>Puntos logrados:</span>
+            <strong id="defeat-score">0</strong>
+          </div>
+          <div class="v-stat-row">
+            <span>Objetivo restante:</span>
+            <strong id="defeat-target-left">-</strong>
+          </div>
+        </div>
+
+        <div class="modal-actions-row">
+          <button id="btn-defeat-map" class="art-btn secondary-btn">
+            <span>🗺️ Mapa</span>
+          </button>
+          <button id="btn-defeat-retry" class="art-btn primary-btn">
+            <span>🔄 Reintentar</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICACIÓN FLOTANTE (BANNER DE COMBO / ALERTA) -->
+    <div id="toast-banner" class="toast-banner hidden">
+      <span id="toast-text">¡INCREÍBLE!</span>
+    </div>
+
+  </div>
+
+  <!-- Scripts del juego -->
+  <script src="js/audio.js"></script>
+  <script src="js/fruitSVGs.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
