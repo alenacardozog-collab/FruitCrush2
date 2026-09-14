@@ -165,29 +165,56 @@
           </div>
           <!-- Canvas de partículas y efectos de dibujo encima del tablero -->
           <canvas id="fx-canvas" class="fx-canvas"></canvas>
+
+          <!-- OVERLAY DE MASCOTAS FRUTALES (Pulgar arriba / abajo y Cartel '¡Fallido!') -->
+          <div id="mascot-feedback-overlay" class="mascot-feedback-overlay hidden">
+            <div id="mascot-graphic-wrap" class="mascot-graphic-wrap"></div>
+            <div id="mascot-sign-card" class="mascot-sign-card">
+              <div class="tape-strip sign-tape"></div>
+              <span id="mascot-sign-text" class="mascot-sign-text">¡FALLIDO!</span>
+            </div>
+          </div>
         </div>
       </main>
 
-      <!-- Barra Inferior de Herramientas / Potenciadores Art Attack -->
+      <!-- Barra Inferior de Herramientas / Potenciadores Art Attack con Regeneración Temporal -->
       <footer class="game-tools-bar">
         <div class="tools-label">✂️ HERRAMIENTAS:</div>
         
         <button id="tool-scissors" class="tool-btn" title="Tijeras: Corta una fruta del tablero">
-          <span class="tool-icon">✂️</span>
-          <span class="tool-name">Tijera</span>
-          <span class="tool-count" id="count-scissors">3</span>
+          <div class="tool-btn-top">
+            <span class="tool-icon">✂️</span>
+            <span class="tool-name">Tijera</span>
+            <span class="tool-count" id="count-scissors">3</span>
+          </div>
+          <div class="tool-regen-wrap" id="regen-wrap-scissors">
+            <span class="tool-regen-timer" id="timer-scissors"></span>
+            <div class="tool-regen-bar"><div class="tool-regen-fill" id="fill-scissors"></div></div>
+          </div>
         </button>
 
         <button id="tool-glue" class="tool-btn" title="Pincel Pegamento: Intercambia dos frutas cualesquiera">
-          <span class="tool-icon">🖌️</span>
-          <span class="tool-name">Pincel</span>
-          <span class="tool-count" id="count-glue">2</span>
+          <div class="tool-btn-top">
+            <span class="tool-icon">🖌️</span>
+            <span class="tool-name">Pincel</span>
+            <span class="tool-count" id="count-glue">2</span>
+          </div>
+          <div class="tool-regen-wrap" id="regen-wrap-glue">
+            <span class="tool-regen-timer" id="timer-glue"></span>
+            <div class="tool-regen-bar"><div class="tool-regen-fill" id="fill-glue"></div></div>
+          </div>
         </button>
 
         <button id="tool-shuffle" class="tool-btn" title="Mezcla de Témperas: Reordena todo el tablero">
-          <span class="tool-icon">🎨</span>
-          <span class="tool-name">Mezcla</span>
-          <span class="tool-count" id="count-shuffle">2</span>
+          <div class="tool-btn-top">
+            <span class="tool-icon">🎨</span>
+            <span class="tool-name">Mezcla</span>
+            <span class="tool-count" id="count-shuffle">2</span>
+          </div>
+          <div class="tool-regen-wrap" id="regen-wrap-shuffle">
+            <span class="tool-regen-timer" id="timer-shuffle"></span>
+            <div class="tool-regen-bar"><div class="tool-regen-fill" id="fill-shuffle"></div></div>
+          </div>
         </button>
       </footer>
     </section>

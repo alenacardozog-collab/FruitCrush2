@@ -272,6 +272,79 @@ class SoundEngine {
       osc.stop(this.ctx.currentTime + item.t + item.d);
     });
   }
+
+  // Sonido cómico de movimiento fallido / desacierto (Boing / Oops)
+  playOops() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.18);
+
+    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.22);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.22);
+  }
+
+  // Campanada brillante cuando una habilidad se regenera (+1)
+  playRecharge() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const chimeNotes = [523.25, 659.25, 783.99, 1046.50];
+    chimeNotes.forEach((f, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.07);
+
+      gain.gain.setValueAtTime(0.18, this.ctx.currentTime + i * 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.07 + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(this.ctx.currentTime + i * 0.07);
+      osc.stop(this.ctx.currentTime + i * 0.07 + 0.25);
+    });
+  }
+
+  // Celebración de pulgar arriba en combo
+  playThumbsUp() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((f, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.05);
+
+      gain.gain.setValueAtTime(0.22, this.ctx.currentTime + i * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.05 + 0.2);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(this.ctx.currentTime + i * 0.05);
+      osc.stop(this.ctx.currentTime + i * 0.05 + 0.2);
+    });
+  }
 }
 
 // Instancia global

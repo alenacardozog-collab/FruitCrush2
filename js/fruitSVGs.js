@@ -185,3 +185,118 @@ function getFruitSVG(type, specialType = null) {
   }
   return FruitGraphics[type] || FruitGraphics.fresa;
 }
+
+/**
+ * MASCOTAS FRUTALES ANIMADAS (ART ATTACK)
+ * - thumbsUp: Frutilla alegre con pulgar arriba para combos
+ * - thumbsDown: Limón consternado con pulgar abajo para fallos
+ * - failedSign: Cartel de recorte de cartón '¡FALLIDO!'
+ */
+const MascotGraphics = {
+  thumbsUp: `
+    <svg viewBox="0 0 160 160" class="mascot-svg mascot-thumbs-up">
+      <defs>
+        <radialGradient id="sparkle-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffea00" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#ffea00" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <!-- Resplandor festivo -->
+      <circle cx="80" cy="80" r="72" fill="url(#sparkle-glow)" opacity="0.6" class="mascot-halo"/>
+      
+      <!-- Sombra de cartón -->
+      <ellipse cx="78" cy="120" rx="42" ry="34" fill="rgba(0,0,0,0.14)"/>
+      
+      <!-- Cuerpo Frutilla Feliz -->
+      <path d="M78 128 C52 124, 34 96, 38 68 C40 52, 58 48, 78 50 C98 48, 116 52, 118 68 C122 96, 104 124, 78 128 Z" 
+            fill="#e63946" stroke="#2b2d42" stroke-width="4.5" stroke-linejoin="round" />
+      
+      <!-- Corona de hojas garabateada -->
+      <path d="M78 48 C70 30, 75 22, 78 18 C81 22, 86 30, 78 48" fill="none" stroke="#2b2d42" stroke-width="4" stroke-linecap="round"/>
+      <path d="M52 52 C42 40, 38 30, 48 34 C58 38, 68 44, 78 48 C88 44, 98 38, 108 34 C118 30, 114 40, 104 52 Z" 
+            fill="#588157" stroke="#2b2d42" stroke-width="4" stroke-linejoin="round"/>
+      
+      <!-- Ojos grandes y felices estilo cartoon -->
+      <ellipse cx="64" cy="74" rx="7" ry="9" fill="#2b2d42"/>
+      <ellipse cx="92" cy="74" rx="7" ry="9" fill="#2b2d42"/>
+      <!-- Brillos en los ojos -->
+      <circle cx="62" cy="71" r="3" fill="#fff"/>
+      <circle cx="66" cy="77" r="1.5" fill="#fff"/>
+      <circle cx="90" cy="71" r="3" fill="#fff"/>
+      <circle cx="94" cy="77" r="1.5" fill="#fff"/>
+      <!-- Mejillas sonrojadas -->
+      <ellipse cx="52" cy="84" rx="6" ry="3.5" fill="#ff758f" opacity="0.8"/>
+      <ellipse cx="104" cy="84" rx="6" ry="3.5" fill="#ff758f" opacity="0.8"/>
+      
+      <!-- Gran Sonrisa -->
+      <path d="M66 86 Q78 102 90 86" fill="#780000" stroke="#2b2d42" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M72 94 Q78 98 84 94" fill="#ff4d6d" stroke="none"/>
+      
+      <!-- Semillas doradas decorativas -->
+      <ellipse cx="56" cy="98" rx="2" ry="3" fill="#fcbf49" stroke="#2b2d42" stroke-width="1"/>
+      <ellipse cx="100" cy="98" rx="2" ry="3" fill="#fcbf49" stroke="#2b2d42" stroke-width="1"/>
+      <ellipse cx="78" cy="112" rx="2" ry="3" fill="#fcbf49" stroke="#2b2d42" stroke-width="1"/>
+
+      <!-- Brazo y MANO CON PULGAR ARRIBA 👍 -->
+      <g class="mascot-thumb-arm">
+        <!-- Brazo -->
+        <path d="M108 84 Q128 80 134 68" fill="none" stroke="#e63946" stroke-width="8" stroke-linecap="round"/>
+        <path d="M108 84 Q128 80 134 68" fill="none" stroke="#2b2d42" stroke-width="3" stroke-linecap="round"/>
+        <!-- Guante blanco estilo Art Attack con pulgar arriba -->
+        <path d="M128 66 C124 60, 126 50, 134 40 C140 32, 148 38, 144 48 L142 56 C148 54, 154 58, 152 64 C154 66, 153 72, 148 76 C146 78, 140 80, 134 78 Z" 
+              fill="#fff" stroke="#2b2d42" stroke-width="3.5" stroke-linejoin="round"/>
+        <line x1="138" y1="62" x2="146" y2="62" stroke="#2b2d42" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="136" y1="70" x2="144" y2="70" stroke="#2b2d42" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+      
+      <!-- Estrellitas brillantes flotantes -->
+      <path d="M28 42 L31 49 L38 52 L31 55 L28 62 L25 55 L18 52 L25 49 Z" fill="#ffbe0b" stroke="#2b2d42" stroke-width="1.5" class="sparkle-1"/>
+      <path d="M136 28 L138 33 L143 35 L138 37 L136 42 L134 37 L129 35 L134 33 Z" fill="#ffbe0b" stroke="#2b2d42" stroke-width="1.5" class="sparkle-2"/>
+    </svg>
+  `,
+
+  thumbsDown: `
+    <svg viewBox="0 0 160 160" class="mascot-svg mascot-thumbs-down">
+      <!-- Sombra de cartón -->
+      <ellipse cx="76" cy="122" rx="42" ry="32" fill="rgba(0,0,0,0.14)"/>
+      
+      <!-- Cuerpo Limón Preocupado / Ouch -->
+      <path d="M30 76 C22 88, 26 106, 42 118 C66 136, 102 130, 122 108 C132 96, 128 78, 114 64 C88 44, 48 50, 30 76 Z" 
+            fill="#ffea00" stroke="#2b2d42" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+      
+      <!-- Hoja verde marchita -->
+      <path d="M80 50 C86 34, 106 36, 112 48 C100 56, 90 54, 80 50 Z" fill="#588157" stroke="#2b2d42" stroke-width="3" stroke-linejoin="round"/>
+      
+      <!-- Gota de sudor / nervios estilo caricatura -->
+      <path d="M116 54 C116 54, 124 64, 124 70 C124 75, 120 78, 116 78 C112 78, 108 75, 108 70 C108 64, 116 54, 116 54 Z" 
+            fill="#48cae4" stroke="#2b2d42" stroke-width="2.5" class="mascot-sweat"/>
+      
+      <!-- Ojos de mareo / consternados (espirales o cruces o círculos temblorosos) -->
+      <g>
+        <circle cx="58" cy="80" r="8" fill="#fff" stroke="#2b2d42" stroke-width="3"/>
+        <circle cx="58" cy="80" r="3.5" fill="#2b2d42"/>
+        <circle cx="90" cy="74" r="8" fill="#fff" stroke="#2b2d42" stroke-width="3"/>
+        <circle cx="90" cy="74" r="3.5" fill="#2b2d42"/>
+        <!-- Cejas curvadas de preocupación -->
+        <path d="M50 70 Q58 64 66 72" fill="none" stroke="#2b2d42" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M82 66 Q90 60 98 68" fill="none" stroke="#2b2d42" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+      
+      <!-- Boca ondulada / 'Oops' -->
+      <path d="M62 102 Q72 94 82 104 Q90 96 96 102" fill="none" stroke="#2b2d42" stroke-width="4" stroke-linecap="round"/>
+      
+      <!-- Brazo y MANO CON PULGAR HACIA ABAJO 👎 -->
+      <g class="mascot-thumb-arm-down">
+        <!-- Brazo -->
+        <path d="M112 92 Q130 98 136 112" fill="none" stroke="#ffea00" stroke-width="8" stroke-linecap="round"/>
+        <path d="M112 92 Q130 98 136 112" fill="none" stroke="#2b2d42" stroke-width="3" stroke-linecap="round"/>
+        <!-- Guante blanco con pulgar hacia abajo -->
+        <path d="M130 108 C124 114, 126 124, 134 136 C140 144, 148 138, 144 128 L142 120 C148 122, 154 118, 152 112 C154 110, 153 104, 148 100 C146 98, 140 96, 134 98 Z" 
+              fill="#fff" stroke="#2b2d42" stroke-width="3.5" stroke-linejoin="round"/>
+        <line x1="138" y1="114" x2="146" y2="114" stroke="#2b2d42" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="136" y1="106" x2="144" y2="106" stroke="#2b2d42" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+    </svg>
+  `
+};
+

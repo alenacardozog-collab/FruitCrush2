@@ -247,8 +247,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible; /* Permitir deslizamiento fluido sin recorte */
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  touch-action: none;
 }
 
 .board-cell.has-glue {
@@ -280,10 +281,30 @@
   border-radius: 12px;
   transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 5;
+  touch-action: none;
 }
 
 .tile-fruit:active {
   cursor: grabbing;
+}
+
+.tile-fruit.swapping-active {
+  z-index: 20 !important;
+  transition: transform 0.15s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.tile-fruit.invalid-shake {
+  animation: fruitInvalidShake 0.45s ease-in-out !important;
+  z-index: 15;
+}
+
+@keyframes fruitInvalidShake {
+  0% { transform: scale(1) translate(0, 0); }
+  20% { transform: scale(0.95) translate(-6px, 0) rotate(-4deg); }
+  40% { transform: scale(0.95) translate(6px, 0) rotate(4deg); }
+  60% { transform: scale(0.98) translate(-4px, 0) rotate(-2deg); }
+  80% { transform: scale(0.98) translate(3px, 0) rotate(1deg); }
+  100% { transform: scale(1) translate(0, 0) rotate(0deg); }
 }
 
 .tile-fruit svg {
@@ -297,7 +318,7 @@
 /* Selección activa */
 .tile-fruit.selected {
   transform: scale(1.15) rotate(4deg);
-  z-index: 10;
+  z-index: 12;
   filter: drop-shadow(0 0 8px rgba(255, 183, 3, 0.9));
   animation: fruitSelectedWiggle 0.6s infinite alternate;
 }
@@ -404,7 +425,151 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 20;
+  z-index: 25;
+}
+
+/* ===================================================
+   OVERLAY DE MASCOTAS FRUTALES (Pulgar Arriba / Abajo)
+   =================================================== */
+.mascot-feedback-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 40;
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mascot-feedback-overlay.hidden {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6);
+  pointer-events: none;
+}
+
+.mascot-feedback-overlay.pop-in {
+  animation: mascotBounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.mascot-feedback-overlay.pop-out {
+  animation: mascotFadeOut 0.3s ease-in forwards;
+}
+
+@keyframes mascotBounceIn {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3) rotate(-10deg); }
+  60% { opacity: 1; transform: translate(-50%, -50%) scale(1.15) rotate(4deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
+
+@keyframes mascotFadeOut {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.7) translateY(-20px); }
+}
+
+.mascot-graphic-wrap {
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.35));
+}
+
+.mascot-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.mascot-thumbs-up .mascot-thumb-arm {
+  transform-origin: 108px 84px;
+  animation: thumbUpWiggle 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes thumbUpWiggle {
+  0% { transform: rotate(-5deg) scale(0.98); }
+  100% { transform: rotate(10deg) scale(1.05); }
+}
+
+.mascot-thumbs-down .mascot-thumb-arm-down {
+  transform-origin: 112px 92px;
+  animation: thumbDownWiggle 0.7s infinite alternate ease-in-out;
+}
+
+@keyframes thumbDownWiggle {
+  0% { transform: rotate(5deg); }
+  100% { transform: rotate(-8deg); }
+}
+
+.mascot-sweat {
+  animation: sweatDrop 0.8s infinite ease-in-out;
+}
+
+@keyframes sweatDrop {
+  0% { transform: translateY(0); opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { transform: translateY(6px); opacity: 0.8; }
+}
+
+/* Cartel colgante '¡FALLIDO!' o '¡EXCELENTE!' */
+.mascot-sign-card {
+  position: relative;
+  background: #fff8cc;
+  border: 3px dashed var(--pencil-lead);
+  border-radius: 12px;
+  padding: 6px 16px;
+  margin-top: -10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  transform: rotate(-2deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: signWobble 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes signWobble {
+  0% { transform: rotate(-3deg); }
+  100% { transform: rotate(2deg); }
+}
+
+.mascot-sign-card.sign-fail {
+  background: #ffe3e3;
+  border-color: #d90429;
+}
+
+.mascot-sign-card.sign-fail .mascot-sign-text {
+  color: #d90429;
+}
+
+.mascot-sign-card.sign-success {
+  background: #e8f5e9;
+  border-color: #2a9d8f;
+}
+
+.mascot-sign-card.sign-success .mascot-sign-text {
+  color: #2a9d8f;
+}
+
+.sign-tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%) rotate(2deg);
+  width: 44px;
+  height: 14px;
+  background: rgba(255, 235, 170, 0.85);
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.mascot-sign-text {
+  font-family: var(--font-bold);
+  font-size: 1.25rem;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 /* ===================================================
@@ -433,15 +598,26 @@
   background: var(--paper-cream);
   border: 2px solid var(--pencil-lead);
   border-radius: 12px;
-  padding: 6px 12px;
+  padding: 5px 10px 6px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 3px;
   position: relative;
   box-shadow: 0 3px 0 var(--pencil-lead);
   transition: all 0.15s ease;
   outline: none;
+  min-width: 80px;
+}
+
+.tool-btn-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  justify-content: center;
 }
 
 .tool-btn:hover {
@@ -465,13 +641,23 @@
   100% { box-shadow: 0 3px 0 var(--pencil-lead), 0 0 12px rgba(230, 57, 70, 0.85); }
 }
 
+.tool-btn.recharged-glow {
+  animation: toolRechargedFlash 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes toolRechargedFlash {
+  0% { transform: scale(1); box-shadow: 0 3px 0 var(--pencil-lead); }
+  40% { transform: scale(1.22); box-shadow: 0 0 20px #00b4d8, 0 3px 0 var(--pencil-lead); background: #caf0f8; }
+  100% { transform: scale(1); box-shadow: 0 3px 0 var(--pencil-lead); }
+}
+
 .tool-icon {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
 }
 
 .tool-name {
   font-family: var(--font-bold);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--pencil-lead);
 }
 
@@ -479,12 +665,46 @@
   background: var(--crayon-red);
   color: white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-bold);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   border: 1px solid var(--pencil-lead);
+}
+
+/* Envoltorio de Regeneración Temporal de Habilidad */
+.tool-regen-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tool-regen-timer {
+  font-family: var(--font-bold);
+  font-size: 0.65rem;
+  color: #0077b6;
+  line-height: 1;
+  min-height: 11px;
+}
+
+.tool-regen-bar {
+  width: 100%;
+  height: 5px;
+  background: #e2d4c0;
+  border: 1px solid rgba(43, 45, 66, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tool-regen-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #48cae4, #0077b6);
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }

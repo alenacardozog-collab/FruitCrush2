@@ -29,6 +29,21 @@ class FrutaAttackApp {
     this.fxCtx = this.fxCanvas ? this.fxCanvas.getContext('2d') : null;
     this.particles = [];
     this.lastAnimFrame = null;
+    this.isAnimatingMove = false;
+    this.mascotFeedbackTimeout = null;
+
+    // Configuración de límites y tiempos de regeneración (en segundos)
+    this.toolMax = {
+      scissors: 3,
+      glue: 3,
+      shuffle: 2
+    };
+
+    this.toolCooldowns = {
+      scissors: 35, // Tijera: 35s
+      glue: 45,     // Pincel: 45s
+      shuffle: 60   // Mezcla: 60s
+    };
 
     this.init();
   }
@@ -41,15 +56,25 @@ class FrutaAttackApp {
       levelHighScores: {},
       tools: {
         scissors: 3,
-        glue: 2,
+        glue: 3,
         shuffle: 2
+      },
+      toolRegenLeft: {
+        scissors: 35,
+        glue: 45,
+        shuffle: 60
       }
     };
 
     try {
       const stored = localStorage.getItem('fruta_attack_save');
       if (stored) {
-        return Object.assign(defaultData, JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        const merged = Object.assign(defaultData, parsed);
+        if (!merged.toolRegenLeft) {
+          merged.toolRegenLeft = { scissors: 35, glue: 45, shuffle: 60 };
+        }
+        return merged;
       }
     } catch (e) {
       console.warn("No se pudo acceder a localStorage:", e);
@@ -71,6 +96,7 @@ class FrutaAttackApp {
     this.updateSoundIcons();
     this.startFXLoop();
     this.resizeCanvas();
+    this.startAbilityRegenTicker();
     window.addEventListener('resize', () => this.resizeCanvas());
   }
 
@@ -447,13 +473,92 @@ class FrutaAttackApp {
     document.querySelector('.star-milestone.star-3').classList.toggle('reached', this.score >= thresholds[2]);
   }
 
-  updateToolButtons() {
-    document.getElementById('count-scissors').textContent = this.saveData.tools.scissors;
-    document.getElementById('count-glue').textContent = this.saveData.tools.glue;
-    document.getElementById('count-shuffle').textContent = this.saveData.tools.shuffle;
+  startAbilityRegenTicker() {
+    if (this.regenTickerInterval) clearInterval(this.regenTickerInterval);
+    this.regenTickerInterval = setInterval(() => {
+      this.tickAbilityRegen();
+    }, 1000);
+  }
 
-    document.getElementById('tool-scissors').classList.toggle('active', this.activeTool === 'scissors');
-    document.getElementById('tool-glue').classList.toggle('active', this.activeTool === 'glue');
+  tickAbilityRegen() {
+    let hasChanged = false;
+
+    for (const tool of ['scissors', 'glue', 'shuffle']) {
+      const currentCount = this.saveData.tools[tool] ?? 0;
+      const maxCount = this.toolMax[tool];
+
+      if (currentCount < maxCount) {
+        if (!this.saveData.toolRegenLeft) this.saveData.toolRegenLeft = {};
+        if (typeof this.saveData.toolRegenLeft[tool] !== 'number' || isNaN(this.saveData.toolRegenLeft[tool])) {
+          this.saveData.toolRegenLeft[tool] = this.toolCooldowns[tool];
+        }
+
+        this.saveData.toolRegenLeft[tool]--;
+
+        if (this.saveData.toolRegenLeft[tool] <= 0) {
+          this.saveData.tools[tool]++;
+          this.saveData.toolRegenLeft[tool] = this.toolCooldowns[tool];
+          hasChanged = true;
+          this.onToolRecharged(tool);
+        }
+      } else {
+        if (this.saveData.toolRegenLeft) {
+          this.saveData.toolRegenLeft[tool] = this.toolCooldowns[tool];
+        }
+      }
+    }
+
+    if (hasChanged) {
+      this.saveGameProgress();
+    }
+
+    this.updateToolButtons();
+  }
+
+  onToolRecharged(tool) {
+    window.gameAudio.playRecharge();
+    const btn = document.getElementById(`tool-${tool}`);
+    if (btn) {
+      btn.classList.add('recharged-glow');
+      setTimeout(() => btn.classList.remove('recharged-glow'), 900);
+    }
+    const toolNames = { scissors: 'Tijera', glue: 'Pincel', shuffle: 'Mezcla' };
+    this.showToast(`✨ ¡+1 ${toolNames[tool]} regenerada!`);
+  }
+
+  updateToolButtons() {
+    const scissorsEl = document.getElementById('count-scissors');
+    const glueEl = document.getElementById('count-glue');
+    const shuffleEl = document.getElementById('count-shuffle');
+
+    if (scissorsEl) scissorsEl.textContent = this.saveData.tools.scissors;
+    if (glueEl) glueEl.textContent = this.saveData.tools.glue;
+    if (shuffleEl) shuffleEl.textContent = this.saveData.tools.shuffle;
+
+    const toolScissors = document.getElementById('tool-scissors');
+    const toolGlue = document.getElementById('tool-glue');
+    if (toolScissors) toolScissors.classList.toggle('active', this.activeTool === 'scissors');
+    if (toolGlue) toolGlue.classList.toggle('active', this.activeTool === 'glue');
+
+    // Actualizar barras de progreso y temporizadores en cada botón
+    for (const tool of ['scissors', 'glue', 'shuffle']) {
+      const cur = this.saveData.tools[tool] ?? 0;
+      const max = this.toolMax[tool];
+      const timerEl = document.getElementById(`timer-${tool}`);
+      const fillEl = document.getElementById(`fill-${tool}`);
+      const totalCooldown = this.toolCooldowns[tool];
+      const timeLeft = this.saveData.toolRegenLeft ? (this.saveData.toolRegenLeft[tool] ?? totalCooldown) : totalCooldown;
+
+      if (cur < max) {
+        const elapsed = Math.max(0, totalCooldown - timeLeft);
+        const pct = Math.min(100, Math.floor((elapsed / totalCooldown) * 100));
+        if (timerEl) timerEl.textContent = `⏱️ ${Math.max(1, timeLeft)}s`;
+        if (fillEl) fillEl.style.width = `${pct}%`;
+      } else {
+        if (timerEl) timerEl.textContent = 'MAX';
+        if (fillEl) fillEl.style.width = '100%';
+      }
+    }
   }
 
   // Renderizado del tablero y celdas
@@ -500,7 +605,7 @@ class FrutaAttackApp {
     }
   }
 
-  // Manejador de actualizaciones del tablero desde el motor (animación fluida de cascada)
+  // Manejador de actualizaciones del tablero desde el motor (animación fluida de cascada y shuffle)
   handleBoardUpdate(ev) {
     if (ev.type === 'match') {
       if (ev.cells && ev.cells.length > 0) {
@@ -533,99 +638,86 @@ class FrutaAttackApp {
           }
         }
       }
+    } else if (ev.type === 'shuffle') {
+      this.showToast("¡Sin movimientos! Remezclando témperas... 🎨");
+      this.renderBoard();
     }
   }
 
-  // Interacción táctil y con mouse (clic, arrastre y swipe)
+  // Interacción táctil y con mouse unificada con Pointer Events y swipe en tiempo real
   bindCellInteraction(cell, r, c) {
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isMouseDown = false;
-    let mouseStartX = 0;
-    let mouseStartY = 0;
+    let startX = 0;
+    let startY = 0;
+    let isTracking = false;
+    let gestureDispatched = false;
 
-    // Mouse Arrastre & Clic
-    cell.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
-      isMouseDown = true;
-      mouseStartX = e.clientX;
-      mouseStartY = e.clientY;
-    });
+    const onPointerDown = (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      if (this.engine.isProcessing || this.isAnimatingMove) return;
 
-    cell.addEventListener('mouseup', (e) => {
-      if (!isMouseDown) return;
-      isMouseDown = false;
-      const dx = e.clientX - mouseStartX;
-      const dy = e.clientY - mouseStartY;
+      isTracking = true;
+      gestureDispatched = false;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      try {
+        cell.setPointerCapture(e.pointerId);
+      } catch (_) {}
+    };
+
+    const onPointerMove = (e) => {
+      if (!isTracking || gestureDispatched) return;
+      if (this.engine.isProcessing || this.isAnimatingMove) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
 
-      // Si fue un clic simple sin arrastre
-      if (absDx < 18 && absDy < 18) {
+      // Si el arrastre supera 18 píxeles en cualquier eje, disparar swipe en tiempo real
+      if (absDx >= 18 || absDy >= 18) {
+        gestureDispatched = true;
+        isTracking = false;
+
+        let targetR = r;
+        let targetC = c;
+
+        if (absDx > absDy) {
+          targetC += dx > 0 ? 1 : -1;
+        } else {
+          targetR += dy > 0 ? 1 : -1;
+        }
+
+        if (targetR >= 0 && targetR < this.engine.rows && targetC >= 0 && targetC < this.engine.cols) {
+          this.executeMove(r, c, targetR, targetC);
+        }
+      }
+    };
+
+    const onPointerUp = (e) => {
+      if (!isTracking) return;
+      isTracking = false;
+
+      // Si no hubo swipe, considerar como clic / toque para selección o herramientas
+      if (!gestureDispatched) {
         this.handleCellClick(r, c);
-        return;
       }
+    };
 
-      // Arrastre con mouse detectado
-      if (this.engine.isProcessing) return;
+    const onPointerCancel = () => {
+      isTracking = false;
+      gestureDispatched = false;
+    };
 
-      let targetR = r;
-      let targetC = c;
-
-      if (absDx > absDy) {
-        targetC += dx > 0 ? 1 : -1;
-      } else {
-        targetR += dy > 0 ? 1 : -1;
-      }
-
-      if (targetR >= 0 && targetR < this.engine.rows && targetC >= 0 && targetC < this.engine.cols) {
-        this.executeMove(r, c, targetR, targetC);
-      }
-    });
-
-    // Touch Swipe y Tap en móviles
-    cell.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-    }, { passive: true });
-
-    cell.addEventListener('touchend', (e) => {
-      const touch = e.changedTouches[0];
-      const dx = touch.clientX - touchStartX;
-      const dy = touch.clientY - touchStartY;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-
-      // Si el desplazamiento fue mínimo, se toma como toque/click
-      if (absDx < 20 && absDy < 20) {
-        this.handleCellClick(r, c);
-        return;
-      }
-
-      // Swipe detectable (horizontal o vertical)
-      if (this.engine.isProcessing) return;
-
-      let targetR = r;
-      let targetC = c;
-
-      if (absDx > absDy) {
-        // Horizontal
-        targetC += dx > 0 ? 1 : -1;
-      } else {
-        // Vertical
-        targetR += dy > 0 ? 1 : -1;
-      }
-
-      if (targetR >= 0 && targetR < this.engine.rows && targetC >= 0 && targetC < this.engine.cols) {
-        this.executeMove(r, c, targetR, targetC);
-      }
-    }, { passive: true });
+    cell.addEventListener('pointerdown', onPointerDown);
+    cell.addEventListener('pointermove', onPointerMove);
+    cell.addEventListener('pointerup', onPointerUp);
+    cell.addEventListener('pointercancel', onPointerCancel);
   }
 
   // Clic en celda (para selección o uso de herramientas)
-  handleCellClick(r, c) {
-    if (this.engine.isProcessing) return;
+  async handleCellClick(r, c) {
+    if (this.engine.isProcessing || this.isAnimatingMove) return;
 
     // Modo Herramienta: Tijera
     if (this.activeTool === 'scissors') {
@@ -636,8 +728,9 @@ class FrutaAttackApp {
         this.activeTool = null;
         this.updateToolButtons();
         this.spawnScissorsEffect(r, c);
-        this.engine.useScissors(r, c);
-        setTimeout(() => this.renderBoard(), 250);
+        await this.engine.useScissors(r, c);
+        this.renderBoard();
+        this.checkLevelOutcome();
       }
       return;
     }
@@ -656,14 +749,15 @@ class FrutaAttackApp {
             window.gameAudio.playSwap();
             this.saveData.tools.glue--;
             this.saveGameProgress();
-            this.engine.useGlueSwap(first.r, first.c, r, c);
+            await this.engine.useGlueSwap(first.r, first.c, r, c);
+            this.renderBoard();
+            this.checkLevelOutcome();
           }
         }
         this.activeTool = null;
         this.glueToolFirstTile = null;
         this.selectedTile = null;
         this.updateToolButtons();
-        setTimeout(() => this.renderBoard(), 250);
       }
       return;
     }
@@ -693,23 +787,96 @@ class FrutaAttackApp {
     }
   }
 
-  // Ejecución de movimiento
+  // Ejecución de movimiento con animación fluida de intercambio y feedback de fallo/acierto
   async executeMove(r1, c1, r2, c2) {
-    window.gameAudio.playSwap();
+    if (this.isAnimatingMove || this.engine.isProcessing) return;
+    this.isAnimatingMove = true;
     this.selectedTile = null;
 
+    const gridEl = document.getElementById('board-grid');
+    const cell1 = gridEl ? gridEl.querySelector(`.board-cell[data-row="${r1}"][data-col="${c1}"]`) : null;
+    const cell2 = gridEl ? gridEl.querySelector(`.board-cell[data-row="${r2}"][data-col="${c2}"]`) : null;
+
+    const tile1 = cell1 ? cell1.querySelector('.tile-fruit') : null;
+    const tile2 = cell2 ? cell2.querySelector('.tile-fruit') : null;
+
+    window.gameAudio.playSwap();
+
+    // 1. Animación visual deslizante entre fichas
+    if (cell1 && cell2 && tile1 && tile2) {
+      const dx = cell2.offsetLeft - cell1.offsetLeft;
+      const dy = cell2.offsetTop - cell1.offsetTop;
+
+      tile1.classList.add('swapping-active');
+      tile2.classList.add('swapping-active');
+      tile1.style.transform = `translate(${dx}px, ${dy}px)`;
+      tile2.style.transform = `translate(${-dx}px, ${-dy}px)`;
+
+      await this.sleep(150);
+    }
+
     const result = await this.engine.trySwap(r1, c1, r2, c2);
+
     if (result.success) {
       this.movesLeft--;
       this.updateHUD();
       this.renderBoard();
-
-      // Comprobar condición de victoria o derrota
+      this.isAnimatingMove = false;
       this.checkLevelOutcome();
     } else {
-      // Movimiento inválido
+      // Movimiento fallido / sin match
+      window.gameAudio.playOops();
+      this.showMascotFeedback('fail');
+
+      if (tile1 && tile2) {
+        tile1.style.transform = 'translate(0, 0)';
+        tile2.style.transform = 'translate(0, 0)';
+        tile1.classList.add('invalid-shake');
+        tile2.classList.add('invalid-shake');
+        await this.sleep(240);
+      }
+
       this.renderBoard();
+      this.isAnimatingMove = false;
     }
+  }
+
+  // Feedback emergente de mascota frutal animada (Pulgar arriba en combo, pulgar abajo y cartel en fallo)
+  showMascotFeedback(type, customText = '') {
+    const overlay = document.getElementById('mascot-feedback-overlay');
+    const graphicWrap = document.getElementById('mascot-graphic-wrap');
+    const signCard = document.getElementById('mascot-sign-card');
+    const signText = document.getElementById('mascot-sign-text');
+    if (!overlay || !graphicWrap || !signCard || !signText) return;
+
+    clearTimeout(this.mascotFeedbackTimeout);
+
+    if (type === 'fail') {
+      graphicWrap.innerHTML = MascotGraphics.thumbsDown;
+      signCard.className = 'mascot-sign-card sign-fail';
+      signText.textContent = '¡FALLIDO!';
+    } else if (type === 'combo') {
+      window.gameAudio.playThumbsUp();
+      graphicWrap.innerHTML = MascotGraphics.thumbsUp;
+      signCard.className = 'mascot-sign-card sign-success';
+      signText.textContent = customText || '¡GENIAL! 👍';
+    }
+
+    overlay.classList.remove('hidden', 'pop-out');
+    overlay.classList.add('pop-in');
+
+    this.mascotFeedbackTimeout = setTimeout(() => {
+      overlay.classList.remove('pop-in');
+      overlay.classList.add('pop-out');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('pop-out');
+      }, 260);
+    }, type === 'fail' ? 850 : 1050);
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // ==========================================
@@ -748,6 +915,7 @@ class FrutaAttackApp {
       const msg = messages[Math.min(combo - 2, messages.length - 1)];
       this.showToast(msg);
       this.spawnPaperConfetti(15);
+      this.showMascotFeedback('combo', msg);
     }
   }
 

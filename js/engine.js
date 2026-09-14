@@ -106,38 +106,50 @@ class Match3Engine {
     this.isProcessing = true;
     this.comboCount = 0;
 
-    // Caso especial 1: Intercambio con Paleta Arcoíris
-    if (tile1.special === 'rainbow' || tile2.special === 'rainbow') {
-      // Si ambos son arcoíris -> ¡Limpieza completa del tablero!
-      if (tile1.special === 'rainbow' && tile2.special === 'rainbow') {
-        await this.triggerDoubleRainbow(r1, c1, r2, c2);
+    try {
+      // Caso especial 1: Intercambio con Paleta Arcoíris
+      if (tile1.special === 'rainbow' || tile2.special === 'rainbow') {
+        // Si ambos son arcoíris -> ¡Limpieza completa del tablero!
+        if (tile1.special === 'rainbow' && tile2.special === 'rainbow') {
+          await this.triggerDoubleRainbow(r1, c1, r2, c2);
+          return { success: true, isSpecial: true };
+        }
+
+        // Un arcoíris y una fruta normal/especial
+        const rainbowPos = tile1.special === 'rainbow' ? { r: r1, c: c1 } : { r: r2, c: c2 };
+        const targetPos = tile1.special === 'rainbow' ? { r: r2, c: c2 } : { r: r1, c: c1 };
+        const targetTile = this.grid[targetPos.r][targetPos.c];
+        const targetType = targetTile ? targetTile.type : this.getRandomFruit();
+
+        await this.triggerRainbowSwap(rainbowPos.r, rainbowPos.c, targetType);
         return { success: true, isSpecial: true };
       }
 
-      // Un arcoíris y una fruta normal/especial
-      const rainbowPos = tile1.special === 'rainbow' ? { r: r1, c: c1 } : { r: r2, c: c2 };
-      const targetPos = tile1.special === 'rainbow' ? { r: r2, c: c2 } : { r: r1, c: c1 };
-      const targetType = this.grid[targetPos.r][targetPos.c].type;
+      // Caso especial 2: Intercambio entre dos frutas especiales (Rayada + Rayada, Rayada + Bomba, Bomba + Bomba)
+      if (tile1.special && tile2.special) {
+        await this.triggerSpecialCombo(r1, c1, r2, c2);
+        return { success: true, isSpecial: true };
+      }
 
-      await this.triggerRainbowSwap(rainbowPos.r, rainbowPos.c, targetType);
-      return { success: true, isSpecial: true };
-    }
-
-    // Intercambio simulado
-    this.swapTiles(r1, c1, r2, c2);
-    const matches = this.findMatches();
-
-    if (matches.length === 0) {
-      // No hay coincidencia -> revertir
+      // Intercambio simulado
       this.swapTiles(r1, c1, r2, c2);
-      this.isProcessing = false;
-      return { success: false, reason: 'no_match' };
-    }
+      const matches = this.findMatches();
 
-    // Movimiento exitoso: resolver matches y cascada
-    await this.processMatchesAndCascades(matches, { r1, c1, r2, c2 });
-    this.isProcessing = false;
-    return { success: true };
+      if (matches.length === 0) {
+        // No hay coincidencia -> revertir
+        this.swapTiles(r1, c1, r2, c2);
+        return { success: false, reason: 'no_match' };
+      }
+
+      // Movimiento exitoso: resolver matches y cascada
+      await this.processMatchesAndCascades(matches, { r1, c1, r2, c2 });
+      return { success: true };
+    } catch (err) {
+      console.error("Error en trySwap:", err);
+      return { success: false, reason: 'error' };
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
   swapTiles(r1, c1, r2, c2) {
@@ -404,6 +416,108 @@ class Match3Engine {
     return null;
   }
 
+  // Combinación directa entre dos frutas especiales intercambiadas
+  async triggerSpecialCombo(r1, c1, r2, c2) {
+    const t1 = this.grid[r1][c1];
+    const t2 = this.grid[r2][c2];
+    if (!t1 || !t2) return;
+
+    this.comboCount = Math.max(2, this.comboCount + 1);
+    this.onCombo(this.comboCount);
+
+    const s1 = t1.special;
+    const s2 = t2.special;
+    const cellsToDestroy = new Map();
+    const isStriped = (s) => s === 'striped_h' || s === 'striped_v';
+
+    if (isStriped(s1) && isStriped(s2)) {
+      // Cruz Gigante: Toda la fila y columna de r1/c1 y r2/c2
+      for (let c = 0; c < this.cols; c++) {
+        cellsToDestroy.set(`${r1},${c}`, { r: r1, c, tile: this.grid[r1][c] });
+        cellsToDestroy.set(`${r2},${c}`, { r: r2, c, tile: this.grid[r2][c] });
+      }
+      for (let r = 0; r < this.rows; r++) {
+        cellsToDestroy.set(`${r},${c1}`, { r, c: c1, tile: this.grid[r][c1] });
+        cellsToDestroy.set(`${r},${c2}`, { r, c: c2, tile: this.grid[r][c2] });
+      }
+      this.onSpecialTriggered('striped_h', r1, c1);
+      this.onSpecialTriggered('striped_v', r2, c2);
+    } else if (s1 === 'bomb' && s2 === 'bomb') {
+      // Mega Bomba 5x5
+      const midR = Math.round((r1 + r2) / 2);
+      const midC = Math.round((c1 + c2) / 2);
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          const nr = midR + dr;
+          const nc = midC + dc;
+          if (nr >= 0 && nr < this.rows && nc >= 0 && nc < this.cols) {
+            cellsToDestroy.set(`${nr},${nc}`, { r: nr, c: nc, tile: this.grid[nr][nc] });
+          }
+        }
+      }
+      this.onSpecialTriggered('bomb', midR, midC);
+    } else if ((isStriped(s1) && s2 === 'bomb') || (s1 === 'bomb' && isStriped(s2))) {
+      // Rayada + Bomba: Limpia 3 filas y 3 columnas
+      const midR = Math.round((r1 + r2) / 2);
+      const midC = Math.round((c1 + c2) / 2);
+      for (let dr = -1; dr <= 1; dr++) {
+        const row = midR + dr;
+        if (row >= 0 && row < this.rows) {
+          for (let c = 0; c < this.cols; c++) {
+            cellsToDestroy.set(`${row},${c}`, { r: row, c, tile: this.grid[row][c] });
+          }
+        }
+      }
+      for (let dc = -1; dc <= 1; dc++) {
+        const col = midC + dc;
+        if (col >= 0 && col < this.cols) {
+          for (let r = 0; r < this.rows; r++) {
+            cellsToDestroy.set(`${r},${col}`, { r, c: col, tile: this.grid[r][col] });
+          }
+        }
+      }
+      this.onSpecialTriggered('bomb', midR, midC);
+      this.onSpecialTriggered('striped_h', midR, midC);
+    } else {
+      // Cualquier otra combinación de especiales
+      cellsToDestroy.set(`${r1},${c1}`, { r: r1, c: c1, tile: t1 });
+      cellsToDestroy.set(`${r2},${c2}`, { r: r2, c: c2, tile: t2 });
+      this.expandSpecialEffect(r1, c1, s1, cellsToDestroy);
+      this.expandSpecialEffect(r2, c2, s2, cellsToDestroy);
+    }
+
+    const collectedCounts = {};
+    let glueCleanedCount = 0;
+    let pointsGained = 600;
+
+    for (const [key, item] of cellsToDestroy) {
+      const { r, c, tile } = item;
+      if (!tile) continue;
+      collectedCounts[tile.type] = (collectedCounts[tile.type] || 0) + 1;
+      if (this.glueGrid[r][c]) {
+        this.glueGrid[r][c] = false;
+        glueCleanedCount++;
+      }
+      pointsGained += 50 * this.comboCount;
+      this.grid[r][c] = null;
+    }
+
+    if (glueCleanedCount > 0) this.onGlueCleaned(glueCleanedCount);
+    this.onCollect(collectedCounts);
+    this.onScore(pointsGained);
+
+    this.onBoardUpdate({ type: 'match', cells: Array.from(cellsToDestroy.values()) });
+    await this.sleep(300);
+    await this.applyGravity();
+    this.onBoardUpdate({ type: 'drop' });
+    await this.sleep(200);
+
+    const newMatches = this.findMatches();
+    if (newMatches.length > 0) {
+      await this.processMatchesAndCascades(newMatches);
+    }
+  }
+
   // Intercambio con Paleta Arcoíris (elimina todas las frutas del color elegido)
   async triggerRainbowSwap(rainbowR, rainbowC, targetType) {
     this.comboCount++;
@@ -533,6 +647,16 @@ class Match3Engine {
       }
     }
 
+    // Si dos celdas adyacentes tienen especiales, se pueden combinar
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (this.grid[r][c]?.special) {
+          if (c < this.cols - 1 && this.grid[r][c + 1]?.special) return true;
+          if (r < this.rows - 1 && this.grid[r + 1][c]?.special) return true;
+        }
+      }
+    }
+
     // Probar intercambios horizontales
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols - 1; c++) {
@@ -556,7 +680,7 @@ class Match3Engine {
     return false;
   }
 
-  // Remezcla de Témperas (Shuffle)
+  // Remezcla de Témperas (Shuffle) con notificación visual y de tablero
   shuffleBoard(notify = true) {
     const allFruits = [];
     for (let r = 0; r < this.rows; r++) {
@@ -570,7 +694,7 @@ class Match3Engine {
     let attempts = 0;
     let foundValid = false;
 
-    while (attempts < 30 && !foundValid) {
+    while (attempts < 50 && !foundValid) {
       attempts++;
       // Mezcla Fisher-Yates
       for (let i = allFruits.length - 1; i > 0; i--) {
@@ -590,46 +714,80 @@ class Match3Engine {
         foundValid = true;
       }
     }
+
+    // Si no se encontró un tablero perfecto sin matches inmediatos pero con jugadas,
+    // garantizar que al menos haya jugadas válidas
+    if (!this.hasPossibleMoves()) {
+      // Forzar una paleta arcoíris o intercambio válido en el centro
+      const midR = Math.floor(this.rows / 2);
+      const midC = Math.floor(this.cols / 2);
+      if (this.grid[midR][midC]) {
+        this.grid[midR][midC].special = 'rainbow';
+      }
+    }
+
+    if (notify) {
+      this.onBoardUpdate({ type: 'shuffle' });
+    }
   }
 
   // Uso de Herramienta: Tijeras (Corta una casilla directamente)
-  useScissors(r, c) {
+  async useScissors(r, c) {
+    if (this.isProcessing) return false;
     if (!this.grid[r][c]) return false;
-    const tile = this.grid[r][c];
+    this.isProcessing = true;
 
-    const collected = {};
-    collected[tile.type] = 1;
-    this.onCollect(collected);
+    try {
+      const tile = this.grid[r][c];
+      const collected = {};
+      collected[tile.type] = 1;
+      this.onCollect(collected);
 
-    let glueCleaned = 0;
-    if (this.glueGrid[r][c]) {
-      this.glueGrid[r][c] = false;
-      glueCleaned++;
-      this.onGlueCleaned(glueCleaned);
-    }
+      let glueCleaned = 0;
+      if (this.glueGrid[r][c]) {
+        this.glueGrid[r][c] = false;
+        glueCleaned++;
+        this.onGlueCleaned(glueCleaned);
+      }
 
-    this.grid[r][c] = null;
-    this.onScore(150);
+      this.grid[r][c] = null;
+      this.onScore(150);
+      this.onBoardUpdate({ type: 'match', cells: [{ r, c, tile }] });
 
-    this.applyGravity().then(() => {
+      await this.sleep(250);
+      await this.applyGravity();
+      this.onBoardUpdate({ type: 'drop' });
+      await this.sleep(200);
+
       const matches = this.findMatches();
       if (matches.length > 0) {
-        this.processMatchesAndCascades(matches);
+        await this.processMatchesAndCascades(matches);
       }
-    });
-
-    return true;
+      return true;
+    } finally {
+      this.isProcessing = false;
+    }
   }
 
   // Uso de Herramienta: Pincel Pegamento (Intercambio libre sin match obligatorio)
-  useGlueSwap(r1, c1, r2, c2) {
+  async useGlueSwap(r1, c1, r2, c2) {
+    if (this.isProcessing) return false;
     if (!this.isAdjacent(r1, c1, r2, c2)) return false;
-    this.swapTiles(r1, c1, r2, c2);
-    const matches = this.findMatches();
-    if (matches.length > 0) {
-      this.processMatchesAndCascades(matches);
+    this.isProcessing = true;
+
+    try {
+      this.swapTiles(r1, c1, r2, c2);
+      this.onBoardUpdate({ type: 'drop' });
+      await this.sleep(200);
+
+      const matches = this.findMatches();
+      if (matches.length > 0) {
+        await this.processMatchesAndCascades(matches);
+      }
+      return true;
+    } finally {
+      this.isProcessing = false;
     }
-    return true;
   }
 
   sleep(ms) {
